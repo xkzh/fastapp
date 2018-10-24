@@ -42,13 +42,23 @@
   "router": {
     "entry": "Main",
     "pages": {
-      "Hello": {
-        "component": "hello",
-        "path": "/"
-      },
       "Main": {
-        "component": "main",
-        "path": "/main"
+        "component": "main"
+      },
+      "ArticleDetail": {
+        "component": "articledetail"
+      },
+      "ArticleCollectList": {
+        "component": "articlecollectlist"
+      },
+      "WebCollectList": {
+        "component": "webcollectlist"
+      },
+      "AddCollectArticle": {
+        "component": "addcollectarticle"
+      },
+      "AddCollectWeb": {
+        "component": "addcollectweb"
       }
     }
   },
@@ -57,10 +67,19 @@
     "titleBar": true,
     "titleBarBackgroundColor": "#0faeff",
     "titleBarTextColor": "#ffffff",
-    "menu": true,
+    "menu": false,
     "pages": {
-      "Hello": {
-        "titleBarText": "TitleBar"
+      "ArticleCollectList": {
+        "titleBar": false
+      },
+      "AddCollectArticle": {
+        "titleBarText": "收藏站外文章"
+      },
+      "WebCollectList": {
+        "titleBar": false
+      },
+      "AddCollectWeb": {
+        "titleBarText": "收藏网站"
       }
     }
   },
