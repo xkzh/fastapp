@@ -1,0 +1,37 @@
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div class="container">
+        <text class="title">
+            Hello {{title}}
+        </text>
+    </div>
+</template>
+
+<style>
+    .container {
+        flex-direction: column;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+    }
+
+    .title {
+        font-size: 100px;
+    }
+</style>
+
+<script>
+  module.exports = {
+    data: {
+      title: 'World'
+    },
+    onInit() {
+      this.$page.setTitleBar({
+        text: 'menu',
+        textColor: '#ffffff',
+        backgroundColor: '#007DFF',
+        backgroundOpacity: 0.5
+      })
+    }
+  }
+</script>
