@@ -1,8 +1,214 @@
 <template>
-    <!-- template里只能有一个根节点 -->
-    <div class="container">
-        <text class="title">
-            Hello home
-        </text>
-    </div>
-  </template>
+    <refresh @refresh="refresh" refreshing="{{isRefreshing}}">
+    <list class="home-page" onscrollbottom="loadMoreData">
+        <!-- 顶部图片 -->
+        <list-item type="banner">
+            <swiper class="banner" autoplay="true" interval="4000">
+              <stack class="banner" for="{{bannerlist}}">
+                <image class="banner-image" src="{{$item.imagePath}}" onclick="openArticle($item.url, '', $item.title)"></image>
+                <text class="banner-title">{{$item.title}}</text>
+              </stack>
+            </swiper>
+        </list-item>
+        <list-item type="tip">
+            <text class="text-tip">最新博文--长按可分享文章~</text>
+        </list-item>
+
+        <!-- 文章 -->
+        <block for="articleList">
+          <list-item type="article" class="article-item" onclick="openArticle($item.link, $item.projectLink, $item.title)" onlongpress="shareLink($item.link)">
+            <div style="display: flex">
+              <text class="tag" show="{{$item.fresh}}">新</text>
+              <text class="text-title" style="flex: 1">{{$item.title}}</text>
+              <image style="width: 52px;height: 52px;" src="{{ collectIcon[$item.collect ? 1 : 0]}}" onclick="clickCollect($item)"></image>
+            </div>
+            <div class="article-tip">
+                <text class="tip">分类: {{$item.superChapterName}}/{{$item.chapterName}}</text>
+            </div>
+            <div class="article-tip">
+              <text class="tip">作者: {{$item.author}}</text>
+              <text class="time">{{$item.niceDate}}</text>
+            </div>
+          </list-item>
+        </block>
+
+        <!-- 加载更多，type属性自定义命名为loadMore -->
+        <list-item type="loadMore" class="load-more" if="articleList.length > 0">
+          <progress type="circular" show="{{hasMoreData}}"></progress>
+          <text show="{{hasMoreData}}">加载更多</text>
+          <text show="{{!hasMoreData}}">没有更多了~</text>
+        </list-item>
+      </list>
+    </refresh>
+</template>
+
+<script>
+  import {
+    getBanner,
+    getArticle
+  } from '../Common/Api/home'
+  import {
+    collectArticle,
+    uncollectArticle
+  } from '../Common/Api/collect'
+
+  export default {
+    data: {
+      bannerlist: [],
+      articleList: [],
+      page: 0,
+      hasMoreData: true,
+      isRefreshing: false,
+      collectIcon: [
+        '../Common/Image/icon_uncollect.png',
+        '../Common/Image/icon_collect.png'
+      ]
+    },
+    onInit () {
+      this.refresh({refreshing: true})
+    },
+    getBanner() {
+      getBanner().then((data) => {
+        this.bannerlist = data
+      })
+    },
+    getArticle() {
+      getArticle(this.page)
+        .then((data) => {
+          this.hasMoreData = !data.over
+          if(this.page > 0) {
+            this.articleList = this.articleList.concat(data.datas)
+          } else {
+            this.isRefreshing = false
+            this.articleList = data.datas
+          }
+        })
+        .catch((err) => {
+          this.isRefreshing = false
+        })
+    },
+    loadMoreData() {
+      if(this.hasMoreData) {
+        this.page++
+        this.getArticle()
+      }
+    },
+    openArticle(link, projectLink, title) {
+      var url = projectLink === '' ? link : projectLink
+      if(url !== '') {
+        this.$app.$def.router.push({
+          uri: 'Webview',
+          params: { 
+            title: title,
+            url: url
+          }
+        })
+      }
+    },
+    refresh(evt) {
+      this.isRefreshing = evt.refreshing
+      this.page = 0
+      this.getBanner()
+      this.getArticle()
+    },
+    clickCollect(item) {
+      if(item.collect) {
+        this.uncollect(item.id)
+      } else {
+        this.collect(item.id)
+      }
+    },
+    uncollect(id) {
+      uncollectArticle(id)
+        .then((data) => {
+          this.refresh({refreshing: true})
+          this.$app.$def.prompt.showToast({ message: '已取消收藏' })
+        })
+        .catch((err) => {
+          this.$app.$def.prompt.showToast({ message: '取消收藏失败' })
+        })
+    },
+    collect(id) {
+      collectArticle(id)
+        .then((data) => {
+          this.refresh({refreshing: true})
+          this.$app.$def.prompt.showToast({ message: '收藏成功~' })
+        })
+        .catch((err) => {
+          this.$app.$def.prompt.showToast({ message: '收藏失败，登录之后才可收藏~' })
+        })
+    },
+    shareLink(url) {
+      this.$app.$def.share.share({
+        type:"text/plain",
+        data: url
+      })
+    }
+  }
+</script>
+
+<style>
+  .banner, .banner-image {
+    width: 100%;
+    height: 420px;
+  }
+  .banner-title {
+    text-overflow: ellipsis;
+    lines: 1;
+    text-align: center;
+    height: 90px;
+    width: 100%;
+    color: #ffffff;
+    background-color: #000000;
+    opacity: 0.5;
+  }
+  .article-item {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-bottom-width: 1px;
+    border-bottom-color: #eeeeee;
+  }
+  .text-tip {
+    width: 100%;
+    padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: #eeeeee;
+  }
+  .article-item .text-title {
+    font-size: 30px;
+    color: #2e3135;
+    text-overflow: ellipsis;
+    lines: 1;
+    margin-bottom: 5px;
+  }
+  .article-item .article-tip {
+    display: flex;
+    flex-direction: row;
+  }
+  .article-tip .tip, .article-tip .time {
+    font-size: 26px;
+    color: #999999;
+  }
+  .time {
+    flex: 1;
+    text-align: right;
+  }
+  .tag {
+    font-size: 22px;
+    color: #FF0000;
+    border: 1px;
+    border-color: #FF0000;
+    margin-right: 10px;
+    padding: 2px;
+    height: 32px;
+  }
+  .load-more {
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+</style>

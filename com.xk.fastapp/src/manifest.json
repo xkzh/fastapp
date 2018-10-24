@@ -48,18 +48,6 @@
       "Main": {
         "component": "main",
         "path": "/main"
-      },
-      "Home": {
-        "component": "home",
-        "path": "/home"
-      },
-      "Profile": {
-        "component": "profile",
-        "path": "/profile"
-      },
-      "Category": {
-        "component": "category",
-        "path": "/category"
       }
     }
   },
